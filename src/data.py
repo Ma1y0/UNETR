@@ -171,7 +171,7 @@ def get_data_loader():
                 keys=["label"], func=lambda x: x - 1
             ),  # AsDiscreted expects labels to start from 0
             AsDiscreted(keys=["label"], to_onehot=4),
-            Pad(keys=["image", "label"], target_shape=(640, 704, 576)),
+            Pad(keys=["image", "label"], target_shape=(640, 704, 576), constant_values=3),
             SplitData(keys=["image", "label"], num_splits=20, split_dim=1),
         ]
     )
@@ -187,7 +187,7 @@ def get_data_loader():
     logger.info(f"Flattened dataset length: {len(flat_dataset)}")
 
     data_loader = DataLoader(
-        flat_dataset, batch_size=1, shuffle=True, num_workers=4, pin_memory=config.cuda
+        flat_dataset, batch_size=1, shuffle=False, pin_memory=config.cuda
     )
     logger.info(f"Data loader created with {len(data_loader)} batches.")
     for batch in data_loader:
