@@ -167,11 +167,14 @@ def get_data_loader():
             ScaleIntensityRangePercentilesd(
                 keys=["image"], lower=0.0, upper=97.0, b_min=0.0, b_max=1.0, clip=True
             ),
+            Pad(keys=["image"], target_shape=(640, 704, 576), constant_values=0),
+            Pad(
+                keys=["label"], target_shape=(640, 704, 576), constant_values=4
+            ),  # 4 is the background class
             Lambdad(
                 keys=["label"], func=lambda x: x - 1
             ),  # AsDiscreted expects labels to start from 0
             AsDiscreted(keys=["label"], to_onehot=4),
-            Pad(keys=["image", "label"], target_shape=(640, 704, 576), constant_values=3),
             SplitData(keys=["image", "label"], num_splits=20, split_dim=1),
         ]
     )
