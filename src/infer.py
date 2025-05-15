@@ -25,7 +25,7 @@ def get_model():
 
 def infer():
     model = get_model()
-    weight_path = "output/SwinUNETR/UNETR/2025-05-06_14:01:01/model_epoch_350.pt"
+    weight_path = "/home/bar/UNETR/output/SwinUNETR/UNETR/2025-05-14_12:10:52/fina-model.pt"
     print(f"Loading model weights from {weight_path}")
     model.load_state_dict(torch.load(weight_path))
     model.eval()
@@ -41,7 +41,7 @@ def infer():
             print(f"Batch shape: {pred.shape}")
 
     pred = torch.cat(output, dim=1)
-    pred = pred.cpu().numpy()
+    pred = pred.cpu().numpy().astype(np.uint8)
 
     print(f"Predictions shape: {pred.shape}")
     print(f"Predictions dtype: {pred.dtype}")
