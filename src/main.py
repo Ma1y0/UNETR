@@ -37,7 +37,7 @@ def main():
     logger.info(f"MONAI info: {monai_info.getvalue()}")
 
     # Get data loader
-    dataloder = get_data_loader()
+    dataloder = get_data_loader(config)
     print(f"Data loader created with {len(dataloder)} samples.")
 
     # Training

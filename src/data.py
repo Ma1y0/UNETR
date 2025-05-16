@@ -16,7 +16,7 @@ from monai.transforms import (
     ToTensorD,
 )
 
-from config import get_config
+from config import Config
 
 logger = logging.getLogger(__name__)
 
@@ -156,8 +156,7 @@ class Pad(MapTransform):
         return d
 
 
-def get_data_loader():
-    config = get_config("config.yaml")
+def get_data_loader(config: Config):
     reader = TiffReader()
     transforms = Compose(
         [
