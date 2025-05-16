@@ -10,6 +10,7 @@ from model import get_model
 
 logger = logging.getLogger(__name__)
 
+
 def infer(config: Config):
     # Get the model
     model = get_model(config)
@@ -29,12 +30,25 @@ def infer(config: Config):
 
     # Concatenate the predictions
     pred = torch.cat(output, dim=1)
-    pred = pred.cpu().numpy().astype(np.uint8)
+    pred = pred.cpu().numpy().astype(np.uint8).squeeze()
 
     logger.info(f"Predictions shape: {pred.shape}")
-    logger.info(f"Predictions dtype: {pred.dtype}")
-    logger.info(f"Predictions min: {pred.min()}, max: {pred.max()}")
-    logger.info(f"Predictions unique values: {np.unique(pred, return_counts=True)}")
+
+    # Crop the prediction
+    output_dim = (601, 674, 560)
+    logger.info(f"Cropping predictions from {pred.shape} to {output_dim}")
+    start = [(pred.shape[i] - output_dim[i]) // 2 for i in range(len(pred.shape))]
+    end = [start[i] + output_dim[i] for i in range(len(pred.shape))]
+    cropped_pred = pred[start[0]:end[0], start[1]:end[1], start[2]:end[2]]
+
+    logger.info(f"Cropped predictions shape: {cropped_pred.shape}")
+    logger.info(f"Cropped predictions dtype: {cropped_pred.dtype}")
+    logger.info(
+        f"Cropped predictions min: {cropped_pred.min()}, max: {cropped_pred.max()}"
+    )
+    logger.info(
+        f"Cropped predictions unique values: {np.unique(cropped_pred, return_counts=True)}"
+    )
 
     # Save the predictions
-    tifffile.imwrite("pred.tiff", pred)
+    tifffile.imwrite("pred.tiff", cropped_pred)
