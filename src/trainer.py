@@ -70,7 +70,7 @@ def train(config: Config, dataloader):
         )
 
         # Start saving the progress every 50 epochs after 60% of the epochs are completed
-        if epoch > (config.epochs / 0.60) and epoch % 50 == 0:
+        if epoch > (config.epochs * 0.60) and epoch % 50 == 0:
             torch.save(
                 model.state_dict(), os.path.join(output_dir, f"model_epoch_{epoch}.pt")
             )
