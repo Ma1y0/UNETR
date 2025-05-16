@@ -7,7 +7,6 @@ from monai.config import print_config  # type: ignore
 
 from config import get_config
 from data import get_data_loader
-from trainer import train
 
 
 def setup_logging():
@@ -40,9 +39,12 @@ def main():
     dataloder = get_data_loader(config)
     print(f"Data loader created with {len(dataloder)} samples.")
 
-    # Training
-    logger.info("Training started")
-    train(config, dataloder)
+    if (config.mode == "training"):
+        from trainer import train
+        train(config, dataloder)
+    elif (config.mode == "inference"):
+        from infer import infer
+        infer(config)
 
 
 if __name__ == "__main__":
