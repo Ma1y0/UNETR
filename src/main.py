@@ -1,10 +1,9 @@
 import logging
 import os
 from datetime import datetime
+from io import StringIO
 
-import numpy as np
-import tifffile
-from monai.config import print_config
+from monai.config import print_config  # type: ignore
 
 from config import get_config
 from data import get_data_loader
@@ -26,15 +25,24 @@ def setup_logging():
 
 
 def main():
+    # Set up logging
     logger = setup_logging()
-    logger.info("Loading configuration...")
-    print_config()
+    logger.info("Loading configuration from config.yaml")
+    config = get_config("config.yaml")
+    logger.info(f"Configuration loaded: {config}")
 
+    # Print MONAI info
+    monai_info = StringIO()
+    print_config(monai_info)
+    logger.info(f"MONAI info: {monai_info.getvalue()}")
+
+    # Get data loader
     dataloder = get_data_loader()
     print(f"Data loader created with {len(dataloder)} samples.")
 
-    print("Training started...")
-    train(get_config("config.yaml"), dataloder)
+    # Training
+    logger.info("Training started")
+    train(config, dataloder)
 
 
 if __name__ == "__main__":

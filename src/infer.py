@@ -3,7 +3,7 @@ import logging
 import numpy as np
 import tifffile
 import torch
-from monai.networks.nets import UNETR
+from monai.networks.nets import UNETR  # type: ignore
 
 from data import get_data_loader
 
@@ -25,7 +25,9 @@ def get_model():
 
 def infer():
     model = get_model()
-    weight_path = "/home/bar/UNETR/output/SwinUNETR/UNETR/2025-05-14_12:10:52/fina-model.pt"
+    weight_path = (
+        "/home/bar/UNETR/output/SwinUNETR/UNETR/2025-05-14_12:10:52/fina-model.pt"
+    )
     print(f"Loading model weights from {weight_path}")
     model.load_state_dict(torch.load(weight_path))
     model.eval()
@@ -48,8 +50,3 @@ def infer():
     print(f"Predictions min: {pred.min()}, max: {pred.max()}")
     print(f"Predictions unique values: {np.unique(pred, return_counts=True)}")
     tifffile.imwrite("pred.tiff", pred)
-
-
-if __name__ == "__main__":
-    print("Starting inference...")
-    infer()

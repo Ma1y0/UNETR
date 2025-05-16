@@ -1,8 +1,15 @@
-model: "UNETR"
+# General
 cuda: true
+mode: "inference"
+
+# Training
 data_path: "/OV-data/keramika/source/data/input/train_data_x_weak.tif"
 label_path: "/OV-data/keramika/source/data/output/train_data_y_weak.tif"
 output_dir: "./output/SwinUNETR"
 tensorboard_dir: "./runs"
 epochs: 601
 learning_rate: 0.0001
+dropout_rate: 0.1
+
+# Inference
+model_path: "/home/bar/UNETR/output/SwinUNETR/UNETR/2025-05-14_12:10:52/fina-model.pt"
