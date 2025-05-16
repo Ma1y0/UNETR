@@ -3,28 +3,17 @@ import logging
 import numpy as np
 import tifffile
 import torch
-from monai.networks.nets import UNETR  # type: ignore
 
+from config import Config
 from data import get_data_loader
+from model import get_model
 
 logger = logging.getLogger(__name__)
 
 
-def get_model():
-    model = UNETR(
-        in_channels=1,
-        out_channels=4,
-        img_size=(32, 704, 576),
-        feature_size=16,
-        res_block=True,
-        dropout_rate=0.1,
-    )
 
-    return model.to("cuda")
-
-
-def infer():
-    model = get_model()
+def infer(config: Config):
+    model = get_model(config)
     weight_path = (
         "/home/bar/UNETR/output/SwinUNETR/UNETR/2025-05-14_12:10:52/fina-model.pt"
     )

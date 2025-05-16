@@ -12,4 +12,4 @@ learning_rate: 0.0001
 dropout_rate: 0.1
 
 # Inference
-model_path: "/home/bar/UNETR/output/SwinUNETR/UNETR/2025-05-14_12:10:52/fina-model.pt"
+pretrained_model_path: "/home/bar/UNETR/output/SwinUNETR/UNETR/2025-05-14_12:10:52/fina-model.pt"

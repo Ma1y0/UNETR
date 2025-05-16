@@ -5,25 +5,13 @@ from datetime import datetime
 import torch
 from monai.losses import DiceCELoss  # type: ignore
 from monai.metrics import DiceMetric  # type: ignore
-from monai.networks.nets import UNETR  # type: ignore
 from torch.optim import AdamW
 from torch.utils.tensorboard import SummaryWriter
 
 from config import Config
+from model import get_model
 
 logger = logging.getLogger(__name__)
-
-
-def get_model(config: Config):
-    model = UNETR(
-        in_channels=1,
-        out_channels=4,
-        img_size=(32, 704, 576),
-        dropout_rate=config.dropout_rate,
-    )
-
-    return model.to("cuda" if config.cuda else "cpu")
-
 
 def train(config: Config, dataloader):
     tensorboard_dir = f"{config.tensorboard_dir}/UNETER/{datetime.now().strftime('%Y-%m-%d_%H:%M:%S')}"

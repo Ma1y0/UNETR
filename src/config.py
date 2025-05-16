@@ -19,7 +19,7 @@ class Config:
     tensorboard_dir: Path
     dropout_rate: float
     # Inference parameters
-    pretrainded: Path
+    pretrained_model_path: Path
 
 
 def get_config(path: str) -> Config:
