@@ -26,25 +26,34 @@ def setup_logging():
 def main():
     # Set up logging
     logger = setup_logging()
-    logger.info("Loading configuration from config.yaml")
-    config = get_config("config.yaml")
-    logger.info(f"Configuration loaded: {config}")
+    try:
 
-    # Print MONAI info
-    monai_info = StringIO()
-    print_config(monai_info)
-    logger.info(f"MONAI info: {monai_info.getvalue()}")
+        logger.info("Loading configuration from config.yaml")
+        config = get_config("config.yaml")
+        logger.info(f"Configuration loaded: {config}")
 
-    # Get data loader
-    dataloder = get_data_loader(config)
-    print(f"Data loader created with {len(dataloder)} samples.")
+        # Print MONAI info
+        monai_info = StringIO()
+        print_config(monai_info)
+        logger.info(f"MONAI info: {monai_info.getvalue()}")
 
-    if (config.mode == "training"):
-        from trainer import train
-        train(config, dataloder)
-    elif (config.mode == "inference"):
-        from infer import infer
-        infer(config)
+        # Get data loader
+        dataloder = get_data_loader(config)
+        print(f"Data loader created with {len(dataloder)} samples.")
+
+        if config.mode == "training":
+            from trainer import train
+            train(config, dataloder)
+        elif config.mode == "inference":
+            from infer import infer
+            infer(config)
+        else:
+            logger.error(f"Invalid mode: {config.mode}")
+            raise ValueError(f"Unsupported mode: {config.mode}")
+
+    except Exception as e:
+        logger.exception("An error occurred during execution: %s", e)
+        raise e
 
 
 if __name__ == "__main__":
