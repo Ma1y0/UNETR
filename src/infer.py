@@ -3,23 +3,26 @@ import logging
 import numpy as np
 import tifffile
 import torch
+from torch.utils.data import DataLoader
 
 from config import Config
-from data import get_data_loader
 from model import get_model
 
 logger = logging.getLogger(__name__)
 
 
-def infer(config: Config):
+def infer(config: Config, data_loader: DataLoader):
+    """Run inference on a given data loader.
+
+    Args:
+        config (Config): Configuration object.
+        data_loader (DataLoader): Data loader for the inference dataset.
+    """
     # Get the model
     model = get_model(config)
     model.eval()
 
-    # Get the data loader
-    data_loader = get_data_loader(config)
-
-    logger.info("Stating inference")
+    logger.info("Starting inference")
     output = []
     for batch in data_loader:
         image = batch["image"].to("cuda")

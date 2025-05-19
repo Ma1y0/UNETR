@@ -27,7 +27,6 @@ def main():
     # Set up logging
     logger = setup_logging()
     try:
-
         logger.info("Loading configuration from config.yaml")
         config = get_config("config.yaml")
         logger.info(f"Configuration loaded: {config}")
@@ -37,16 +36,19 @@ def main():
         print_config(monai_info)
         logger.info(f"MONAI info: {monai_info.getvalue()}")
 
-        # Get data loader
-        dataloder = get_data_loader(config)
-        print(f"Data loader created with {len(dataloder)} samples.")
 
         if config.mode == "training":
             from trainer import train
-            train(config, dataloder)
+
+            train_loader, test_loader = get_data_loader(config)
+            train(config, train_loader, test_loader)
         elif config.mode == "inference":
             from infer import infer
-            infer(config)
+
+            data_loader = get_data_loader(config)
+            # Help the type checker
+            assert not isinstance(data_loader, tuple), "Expected a single DataLoader in inference mode"
+            infer(config, data_loader)
         else:
             logger.error(f"Invalid mode: {config.mode}")
             raise ValueError(f"Unsupported mode: {config.mode}")

@@ -18,6 +18,7 @@ class Config:
     output_dir: Path
     tensorboard_dir: Path
     dropout_rate: float
+    train_split: float
     # Inference parameters
     pretrained_model_path: Path
 

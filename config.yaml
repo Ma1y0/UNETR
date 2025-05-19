@@ -10,6 +10,7 @@ tensorboard_dir: "./runs"
 epochs: 601
 learning_rate: 0.0001
 dropout_rate: 0.1
+train_split: 0.8
 
 # Inference
 pretrained_model_path: "/home/bar/UNETR/output/SwinUNETR/UNETR/2025-05-14_12:10:52/fina-model.pt"

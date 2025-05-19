@@ -1,4 +1,5 @@
 import logging
+from typing import Union
 
 import tifffile
 import torch
@@ -12,6 +13,7 @@ from monai.transforms.io.dictionary import LoadImageD
 from monai.transforms.post.dictionary import AsDiscreted
 from monai.transforms.transform import MapTransform
 from monai.transforms.utility.dictionary import EnsureChannelFirstd, Lambdad, ToTensorD
+from torch.utils.data import random_split
 
 from config import Config
 
@@ -99,11 +101,11 @@ class TiffReader(ImageReader):
 
 
 class Pad(MapTransform):
-    def __init__(self, keys, target_shape, pad_mode="constant", constant_values=0):
+    def __init__(self, keys, target_shape, pad_mode="constant", constant_value=0):
         super().__init__(keys)
         self.target_shape = target_shape
         self.pad_mode = pad_mode
-        self.constant_values = constant_values
+        self.constant_values = constant_value
 
     def __call__(self, data):
         d = dict(data)
@@ -153,7 +155,19 @@ class Pad(MapTransform):
         return d
 
 
-def get_data_loader(config: Config):
+def get_data_loader(config: Config) -> Union[DataLoader, tuple[DataLoader, DataLoader]]:
+    """Get data loader for training or inference.
+
+    Args:
+        config (Config): Configuration object containing data loading parameters.
+
+    Raises:
+        ValueError: If the config mode is not 'train' or 'inference'.
+
+    Returns:
+        Union[DataLoader, tuple[DataLoader, DataLoader]]: Data loader for inference. Tuple of data loaders for training.
+    """
+
     reader = TiffReader()
     transforms = Compose(
         [
@@ -163,9 +177,9 @@ def get_data_loader(config: Config):
             ScaleIntensityRangePercentilesd(
                 keys=["image"], lower=0.0, upper=97.0, b_min=0.0, b_max=1.0, clip=True
             ),
-            Pad(keys=["image"], target_shape=(640, 704, 576), constant_values=0),
+            Pad(keys=["image"], target_shape=(640, 704, 576), constant_value=0),
             Pad(
-                keys=["label"], target_shape=(640, 704, 576), constant_values=4
+                keys=["label"], target_shape=(640, 704, 576), constant_value=4
             ),  # 4 is the background class
             Lambdad(
                 keys=["label"], func=lambda x: x - 1
@@ -185,11 +199,39 @@ def get_data_loader(config: Config):
 
     logger.info(f"Flattened dataset length: {len(flat_dataset)}")
 
-    data_loader = DataLoader(
-        flat_dataset, batch_size=1, shuffle=False, pin_memory=config.cuda
-    )
-    logger.info(f"Data loader created with {len(data_loader)} batches.")
-    for batch in data_loader:
-        logger.info(f"Batch shape: {batch['image'].shape}, {batch['label'].shape}")
-        break
-    return data_loader
+    if config.mode == "inference":
+        data_loader = DataLoader(
+            flat_dataset, batch_size=1, shuffle=False, pin_memory=config.cuda
+        )
+        logger.info(f"Data loader for inference created with {len(data_loader)} batches.")
+        for batch in data_loader:
+            logger.info(f"Batch shape: {batch['image'].shape}, {batch['label'].shape}")
+            break
+        return data_loader
+    elif config.mode == "train":
+        train_split_size = int(config.train_split * len(flat_dataset))
+        test_split_size = len(flat_dataset) - train_split_size
+        train_dataset, test_dataset = random_split(flat_dataset, [train_split_size, test_split_size])
+
+        
+        train_loader = DataLoader(
+            train_dataset,
+            batch_size=1,
+            shuffle=True,
+            pin_memory=config.cuda,
+        )
+        test_loader = DataLoader(
+            test_dataset,
+            batch_size=1,
+            shuffle=False,
+            pin_memory=config.cuda,
+        )
+
+        logger.info(f"Data loader for training created with {len(train_loader)} batches.")
+        logger.info(f"Data loader for testing created with {len(test_loader)} batches.")
+        for batch in train_loader:
+            logger.info(f"Batch shape: {batch['image'].shape}, {batch['label'].shape}")
+            break
+        return train_loader, test_loader
+    else:
+        raise ValueError(f"Invalid mode: {config.mode}. Use 'train' or 'inference'.")
