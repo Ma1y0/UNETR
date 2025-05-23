@@ -25,7 +25,7 @@ def infer(config: Config, data_loader: DataLoader):
     logger.info("Starting inference")
     output = []
     for batch in data_loader:
-        image = batch["image"].to("cuda")
+        image = batch["image"].to("cuda" if config.cuda else "cpu")
         with torch.no_grad():
             pred = model(image)
             pred = torch.argmax(pred, dim=1)

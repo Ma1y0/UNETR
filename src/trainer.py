@@ -15,19 +15,19 @@ from model import get_model
 logger = logging.getLogger(__name__)
 
 def train(config: Config, training_loader: DataLoader, test_loader: DataLoader):
-    tensorboard_dir = f"{config.tensorboard_dir}/UNETER/{datetime.now().strftime('%Y-%m-%d_%H:%M:%S')}"
+    tensorboard_dir = f"{config.tensorboard_dir}/UNETR/{datetime.now().strftime('%Y-%m-%d_%H:%M:%S')}"
     os.makedirs(tensorboard_dir, exist_ok=True)
     output_dir = (
-        f"{config.output_dir}/UNETER/{datetime.now().strftime('%Y-%m-%d_%H:%M:%S')}"
+        f"{config.output_dir}/UNETR/{datetime.now().strftime('%Y-%m-%d_%H:%M:%S')}"
     )
     os.makedirs(output_dir, exist_ok=True)
 
     model = get_model(config)
     logger.info(
-        f"Model UNETER created with {sum(p.numel() for p in model.parameters() if p.requires_grad)} trainable parameters."
+        f"Model UNETR created with {sum(p.numel() for p in model.parameters() if p.requires_grad)} trainable parameters."
     )
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = torch.device("cuda" if config.cuda else "cpu")
 
     writer = SummaryWriter(tensorboard_dir)
 
@@ -68,8 +68,9 @@ def train(config: Config, training_loader: DataLoader, test_loader: DataLoader):
                 dice_metric(y_pred=val_preds, y=label.argmax(dim=1, keepdim=True))
         avg_val_loss = val_loss / len(test_loader)
         metric = dice_metric.aggregate().item()
-        writer.add_scalar("Loss/val", avg_val_loss, epoch)
+        dice_metric.reset()
         writer.add_scalar("Dice/val", metric, epoch)
+        writer.add_scalar("Loss/val", avg_val_loss, epoch)
 
         logger.info(
             f"Epoch {epoch}/{config.epochs} - Train Loss: {avg_train_loss:.4f} - Val Loss: {avg_val_loss:.4f} - Val Dice: {metric:.4f}"

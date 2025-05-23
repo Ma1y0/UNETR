@@ -20,7 +20,7 @@ from config import Config
 logger = logging.getLogger(__name__)
 
 
-class SplitData(MapTransform):
+class SplitDatad(MapTransform):
     def __init__(self, keys, num_splits=4, split_dim=1):
         super().__init__(keys)
         self.num_splits = num_splits
@@ -43,12 +43,6 @@ class SplitData(MapTransform):
 
 
 class FlattenSplitDataset(Dataset):
-    """
-    Dataset wrapper that takes each record from the base dataset, which is
-    assumed to have a split dimension (e.g. shape [num_splits, ...] in 'image' and 'label'),
-    and creates separate data samples (records) for each split.
-    """
-
     def __init__(self, base_dataset):
         """
         Args:
@@ -75,9 +69,8 @@ class FlattenSplitDataset(Dataset):
 
 
 class TiffReader(ImageReader):
-    """
-    Custom reader for TIFF files.
-    """
+    """Custom reader for TIFF files."""
+
 
     def read(self, data, **kwargs):
         logger.info(f"Loading TIFF file: {data[0]}")
@@ -101,6 +94,14 @@ class TiffReader(ImageReader):
 
 
 class Pad(MapTransform):
+    """Pad the input data to a target shape.
+
+    Args:
+        keys (list): List of keys to pad.
+        target_shape (tuple): Target shape to pad the data to.
+        pad_mode (str): Padding mode. Default is "constant".
+        constant_value (int): Value to use for constant padding. Default is 0.
+    """
     def __init__(self, keys, target_shape, pad_mode="constant", constant_value=0):
         super().__init__(keys)
         self.target_shape = target_shape
@@ -120,7 +121,7 @@ class Pad(MapTransform):
             _, d_size, h_size, w_size = x.shape
             target_d, target_h, target_w = self.target_shape
 
-            # Check if padding is required.3
+            # Check if padding is required
             if d_size > target_d or h_size > target_h or w_size > target_w:
                 raise ValueError(
                     f"Input {key} has shape {(d_size, h_size, w_size)} which exceeds the target shape {self.target_shape}."
@@ -162,7 +163,7 @@ def get_data_loader(config: Config) -> Union[DataLoader, tuple[DataLoader, DataL
         config (Config): Configuration object containing data loading parameters.
 
     Raises:
-        ValueError: If the config mode is not 'train' or 'inference'.
+        ValueError: If the config mode is not 'training' or 'inference'.
 
     Returns:
         Union[DataLoader, tuple[DataLoader, DataLoader]]: Data loader for inference. Tuple of data loaders for training.
@@ -185,7 +186,7 @@ def get_data_loader(config: Config) -> Union[DataLoader, tuple[DataLoader, DataL
                 keys=["label"], func=lambda x: x - 1
             ),  # AsDiscreted expects labels to start from 0
             AsDiscreted(keys=["label"], to_onehot=4),
-            SplitData(keys=["image", "label"], num_splits=20, split_dim=1),
+            SplitDatad(keys=["image", "label"], num_splits=20, split_dim=1),
         ]
     )
 
@@ -208,7 +209,7 @@ def get_data_loader(config: Config) -> Union[DataLoader, tuple[DataLoader, DataL
             logger.info(f"Batch shape: {batch['image'].shape}, {batch['label'].shape}")
             break
         return data_loader
-    elif config.mode == "train":
+    elif config.mode == "training":
         train_split_size = int(config.train_split * len(flat_dataset))
         test_split_size = len(flat_dataset) - train_split_size
         train_dataset, test_dataset = random_split(flat_dataset, [train_split_size, test_split_size])
@@ -234,4 +235,4 @@ def get_data_loader(config: Config) -> Union[DataLoader, tuple[DataLoader, DataL
             break
         return train_loader, test_loader
     else:
-        raise ValueError(f"Invalid mode: {config.mode}. Use 'train' or 'inference'.")
+        raise ValueError(f"Invalid mode: {config.mode}. Use 'training' or 'inference'.")
